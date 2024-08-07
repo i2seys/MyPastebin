@@ -8,12 +8,12 @@ import ru.pastebin.cli.dto.Paste;
 
 @Service
 @Slf4j
-public class KafkaPasteProducer {
+public class KafkaProducer {
 
     @Autowired
     private KafkaTemplate<String, Paste> kafkaTemplate;
 
-    public void sendMessage(String topicName, Paste paste) {
+    public void sendCreatePasteMessage(String topicName, Paste paste) {
         log.info("Sending : {}", paste);
         log.info("--------------------------------");
 

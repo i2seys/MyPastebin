@@ -4,7 +4,7 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import ru.pastebin.cli.dto.Paste;
-import ru.pastebin.cli.service.KafkaPasteProducer;
+import ru.pastebin.cli.service.KafkaProducer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,11 +13,11 @@ import java.util.Date;
 
 public class MainApplication {
     private static NewTopic kafkaSendPasteTopic;
-    private static KafkaPasteProducer kafkaPasteProducer;
+    private static KafkaProducer kafkaProducer;
 
     public static void main(String[] args) {
         ApplicationContext ctx = new AnnotationConfigApplicationContext("ru.pastebin.cli");
-        kafkaPasteProducer = ctx.getBean(KafkaPasteProducer.class);
+        kafkaProducer = ctx.getBean(KafkaProducer.class);
         kafkaSendPasteTopic = ctx.getBean(NewTopic.class);
 
         System.out.println("c = create, requires text.\ng = get, requires id.\ne = exit.");
@@ -56,7 +56,7 @@ public class MainApplication {
     }
 
     private static void createPaste(Paste paste) {
-        kafkaPasteProducer.sendMessage(kafkaSendPasteTopic.name(), paste);
+        kafkaProducer.sendCreatePasteMessage(kafkaSendPasteTopic.name(), paste);
     }
 
     private static Paste getPaste(String id) {

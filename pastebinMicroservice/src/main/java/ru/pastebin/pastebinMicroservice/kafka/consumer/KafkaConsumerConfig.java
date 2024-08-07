@@ -1,4 +1,4 @@
-package ru.pastebin.pastebinMicroservice.kafka;
+package ru.pastebin.pastebinMicroservice.kafka.consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -12,7 +12,6 @@ import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 import ru.pastebin.pastebinMicroservice.deserializer.PasteDeserializer;
 import ru.pastebin.pastebinMicroservice.dto.Paste;
 
@@ -21,7 +20,7 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-public class KafkaPasteConsumer {
+public class KafkaConsumerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
@@ -29,7 +28,7 @@ public class KafkaPasteConsumer {
     private final PasteDeserializer pasteDeserializer;
 
     @Autowired
-    public KafkaPasteConsumer(PasteDeserializer pasteDeserializer) {
+    public KafkaConsumerConfig(PasteDeserializer pasteDeserializer) {
         this.pasteDeserializer = pasteDeserializer;
     }
 

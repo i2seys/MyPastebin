@@ -1,4 +1,4 @@
-package ru.pastebin.cli.beans;
+package ru.pastebin.cli.kafka;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +11,7 @@ import org.springframework.kafka.config.TopicBuilder;
 @PropertySource("classpath:application.properties")
 public class KafkaTopic {
 
-    @Value("${spring.kafka.topic_name}")
+    @Value("${spring.kafka.create_paste_topic_name}")
     private String topicName;
     @Bean
     public NewTopic mainTopic() {

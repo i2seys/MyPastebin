@@ -1,4 +1,4 @@
-package ru.pastebin.cli.beans;
+package ru.pastebin.cli.kafka.producer;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
