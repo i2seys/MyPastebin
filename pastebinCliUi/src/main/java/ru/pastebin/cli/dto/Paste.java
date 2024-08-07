@@ -1,9 +1,8 @@
-package ru.pastebin.cli.model;
+package ru.pastebin.cli.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.Date;
 
 @Data

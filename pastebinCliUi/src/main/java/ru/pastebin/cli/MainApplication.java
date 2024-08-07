@@ -1,14 +1,9 @@
 package ru.pastebin.cli;
 
 import org.apache.kafka.clients.admin.NewTopic;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
-import ru.pastebin.cli.beans.KafkaProducerConfig;
-import ru.pastebin.cli.beans.KafkaTopic;
-import ru.pastebin.cli.model.Paste;
+import ru.pastebin.cli.dto.Paste;
 import ru.pastebin.cli.service.KafkaPasteProducer;
 
 import java.io.BufferedReader;
@@ -32,9 +27,13 @@ public class MainApplication {
                 new InputStreamReader(System.in))) {
             while (noExit) {
                 String query = reader.readLine();
+                if (query.isBlank()) {
+                    System.out.println("Wrong query, try again.");
+                    continue;
+                }
                 char type = query.charAt(0);
                 switch (type) {
-                    case 'c':
+                     case 'c':
                         String paste = query.substring(1).trim();
                         Date date = new Date();
                         createPaste(new Paste(paste, date));
