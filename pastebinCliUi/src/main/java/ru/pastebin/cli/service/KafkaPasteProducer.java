@@ -1,0 +1,22 @@
+package ru.pastebin.cli.service;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+import ru.pastebin.cli.model.Paste;
+
+@Service
+@Slf4j
+public class KafkaPasteProducer {
+
+    @Autowired
+    private KafkaTemplate<String, Paste> kafkaTemplate;
+
+    public void sendMessage(String topicName, Paste paste) {
+        log.info("Sending : {}", paste);
+        log.info("--------------------------------");
+
+        kafkaTemplate.send(topicName, paste);
+    }
+}
