@@ -30,7 +30,7 @@ public class KafkaConsumer {
     @KafkaListener(topics = topicName, groupId = groupId, containerFactory = "pasteKafkaListenerContainerFactory")
     private void createPasteListener(ConsumerRecord<String, Paste> record) {
         Paste paste = record.value();
-        log.info("Received CreatePaste message {} in group1", paste);
+        log.info("Received CreatePaste message {}", paste);
 
         log.info("Send to HashMicroservice");
         kafkaProducer.sendGetHashMessage(kafkaTopic.hashTopic().name());
