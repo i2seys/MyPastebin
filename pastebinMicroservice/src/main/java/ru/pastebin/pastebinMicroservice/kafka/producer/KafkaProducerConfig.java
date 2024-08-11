@@ -1,8 +1,8 @@
 package ru.pastebin.pastebinMicroservice.kafka.producer;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.kafka.common.serialization.VoidSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +22,7 @@ public class KafkaProducerConfig {
      * Она служит руководством для формирования экземпляров Kafka продюсеров.
      * */
     @Bean
-    public ProducerFactory<String, Void> getHashProducerFactory() {
+    public ProducerFactory<String, Long> getHashProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
 
         // в этом свойстве указываются адреса брокеров Kafka,
@@ -40,7 +40,7 @@ public class KafkaProducerConfig {
         );
         configProps.put(
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                VoidSerializer.class
+                LongSerializer.class
         );
         return new DefaultKafkaProducerFactory<>(configProps);
     }
@@ -51,7 +51,7 @@ public class KafkaProducerConfig {
      * в определенные топики Kafka.
      * */
     @Bean
-    public KafkaTemplate<String, Void> getHashKafkaTemplate() {
+    public KafkaTemplate<String, Long> getHashKafkaTemplate() {
         return new KafkaTemplate<>(getHashProducerFactory());
     }
 }

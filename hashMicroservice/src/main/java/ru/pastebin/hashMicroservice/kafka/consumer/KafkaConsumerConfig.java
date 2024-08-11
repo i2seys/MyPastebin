@@ -1,6 +1,7 @@
 package ru.pastebin.hashMicroservice.kafka.consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.VoidDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,19 +24,19 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
 
     @Bean
-    public ConsumerFactory<String, Void> createHashConsumerFactory() {
+    public ConsumerFactory<String, Long> createHashConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 bootstrapServers
         );
 
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new VoidDeserializer());
+        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new LongDeserializer());
     }
 
     @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, Void>> hashKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Void> factory =
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, Long>> hashKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Long> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(createHashConsumerFactory());
         return factory;

@@ -1,5 +1,6 @@
 package ru.pastebin.cli.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,5 +10,6 @@ import java.util.Date;
 @AllArgsConstructor
 public class Paste {
     public String paste;
-    public Date date;
+    @JsonProperty("create_time")
+    public Date createTime;
 }

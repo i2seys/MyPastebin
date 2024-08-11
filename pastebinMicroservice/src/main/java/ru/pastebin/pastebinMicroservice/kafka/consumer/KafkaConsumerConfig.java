@@ -1,6 +1,7 @@
 package ru.pastebin.pastebinMicroservice.kafka.consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,25 @@ public class KafkaConsumerConfig {
         );
 
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), pasteDeserializer);
+    }
+
+    @Bean
+    public ConsumerFactory<Long, String> getGeneratedHashConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                bootstrapServers
+        );
+
+        return new DefaultKafkaConsumerFactory<>(props, new LongDeserializer(), new StringDeserializer());
+    }
+
+    @Bean
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<Long, String>> getGeneratedHashContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Long, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(getGeneratedHashConsumerFactory());
+        return factory;
     }
 
     @Bean

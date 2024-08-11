@@ -1,6 +1,7 @@
 package ru.pastebin.pastebinMicroservice.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 @ToString
 public class Paste {
-    public String paste;
-    public Date date;
+    private String paste;
+    @JsonProperty("create_time")
+    private Date createTime;
 }

@@ -12,8 +12,14 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopic {
     @Value("${spring.kafka.get_hash_topic_name}")
     private String getHashTopicName;
+    @Value("${spring.kafka.generated_hash_topic_name}")
+    private String generateHashTopicName;
     @Bean
-    public NewTopic hashTopic() {
+    public NewTopic getHashTopic() {
         return TopicBuilder.name(getHashTopicName).build();
+    }
+    @Bean
+    public NewTopic generateHashTopic() {
+        return TopicBuilder.name(generateHashTopicName).build();
     }
 }
