@@ -30,14 +30,11 @@ public class KafkaConsumer {
      * Прослушивает события создания Paste. Когда пришёл запрос, надо запросить Hash с другого микросервиса.
      * */
     @KafkaListener(topics = topicName, groupId = groupId, containerFactory = "hashKafkaListenerContainerFactory")
-    private void createPasteListener(ConsumerRecord<String, Long> record) {
+    private void createPasteListener(ConsumerRecord<Void, Void> record) {
         log.info("Received GetHash message.");
-        Long id = record.value();
-
-        log.info("GetHash...");
         String hash = hashGenerator.generateAndSaveHash();
         log.info("Hash: {}", hash);
 
-        kafkaProducer.sendGenerateHashMessage(kafkaTopic.generateHashTopic().name(), hash, id);
+        kafkaProducer.sendGenerateHashMessage(kafkaTopic.generateHashTopic().name(), hash, record.headers());
     }
 }

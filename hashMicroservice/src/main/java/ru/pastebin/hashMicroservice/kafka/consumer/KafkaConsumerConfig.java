@@ -24,19 +24,19 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
 
     @Bean
-    public ConsumerFactory<String, Long> createHashConsumerFactory() {
+    public ConsumerFactory<Void, Void> createHashConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 bootstrapServers
         );
 
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new LongDeserializer());
+        return new DefaultKafkaConsumerFactory<>(props, new VoidDeserializer(), new VoidDeserializer());
     }
 
     @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, Long>> hashKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Long> factory =
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<Void, Void>> hashKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Void, Void> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(createHashConsumerFactory());
         return factory;

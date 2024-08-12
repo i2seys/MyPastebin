@@ -3,6 +3,7 @@ package ru.pastebin.hashMicroservice.kafka.producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.VoidSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,7 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
     @Bean
-    public ProducerFactory<Long, String> generateHashProducerFactory() {
+    public ProducerFactory<Void, String> generateHashProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
 
         configProps.put(
@@ -28,7 +29,7 @@ public class KafkaProducerConfig {
 
         configProps.put(
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                LongSerializer.class
+                VoidSerializer.class
         );
         configProps.put(
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
@@ -37,7 +38,7 @@ public class KafkaProducerConfig {
         return new DefaultKafkaProducerFactory<>(configProps);
     }
     @Bean
-    public KafkaTemplate<Long, String> generateHashKafkaTemplate() {
+    public KafkaTemplate<Void, String> generateHashKafkaTemplate() {
         return new KafkaTemplate<>(generateHashProducerFactory());
     }
 }

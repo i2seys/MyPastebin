@@ -2,17 +2,18 @@ package ru.pastebin.pastebinMicroservice.kafka.consumer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import ru.pastebin.pastebinMicroservice.deserializer.PasteDeserializer;
 import ru.pastebin.pastebinMicroservice.dto.Paste;
 import ru.pastebin.pastebinMicroservice.kafka.KafkaTopic;
 import ru.pastebin.pastebinMicroservice.kafka.producer.KafkaProducer;
 import ru.pastebin.pastebinMicroservice.service.PasteService;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,23 +31,18 @@ public class KafkaConsumer {
     private final KafkaTopic kafkaTopic;
 
     private PasteService pasteService;
-
-    /** Нужен для отслеживания запроса. */
-    private final AtomicLong requestId;
-    /** Нужна для связки id и пасты */
-    private final ConcurrentMap<Long, Paste> idToTime;
+    private PasteDeserializer pasteDeserializer;
 
     @Autowired
     public KafkaConsumer(
             KafkaProducer kafkaProducer,
             KafkaTopic kafkaTopic,
-            @Value("${cache.request_hash_cache_size}") int idToTimeSize,
+            PasteDeserializer pasteDeserializer,
             PasteService pasteService
     ) {
         this.kafkaProducer = kafkaProducer;
         this.kafkaTopic = kafkaTopic;
-        this.requestId = new AtomicLong();
-        this.idToTime = new ConcurrentHashMap<>(idToTimeSize);
+        this.pasteDeserializer = pasteDeserializer;
         this.pasteService = pasteService;
     }
 
@@ -56,30 +52,24 @@ public class KafkaConsumer {
     @KafkaListener(topics = createPasteTopicName, groupId = groupId, containerFactory = "pasteKafkaListenerContainerFactory")
     private void createPasteListener(ConsumerRecord<String, Paste> record) {
         Paste paste = record.value();
-        log.info("Received CreatePaste message {}", paste);
+        log.info("Received CreatePaste message {}, Sending to HashMicroservice", paste);
 
-        log.info("Send to HashMicroservice");
-
-        // Для того, чтобы в будущем знать, какое время принадлежало пришедшему Hash,
-        // требуется хранить эту информацию в памяти.
-        synchronized (this) {
-            idToTime.put(requestId.getAndAdd(1), paste);
-            kafkaProducer.sendGetHashMessage(requestId.get() - 1, kafkaTopic.getHashTopic().name());
-        }
+        kafkaProducer.sendGetHashMessage(kafkaTopic.getHashTopic().name(), paste);
     }
 
     @KafkaListener(topics = getGeneratedHashTopicName, groupId = groupId, containerFactory = "getGeneratedHashContainerFactory")
-    private void getGeneratedHashTopicListener(ConsumerRecord<Long, String> record) {
+    private void getGeneratedHashTopicListener(ConsumerRecord<Void, String> record) {
         String hash = record.value();
-        Long id = record.key();
-        if (!idToTime.containsKey(id)) {
-            log.error("Cache does not contains this id: {}, hash: {}", id, hash);
+
+        Headers headers = record.headers();
+        Header pasteHeader = headers.headers("paste").iterator().next();
+        if (pasteHeader == null) {
+            log.error("Headers does not contain paste header, cant continue");
             return;
         }
-        Paste paste = idToTime.get(id);
+        Paste paste = pasteDeserializer.deserialize(kafkaTopic.generateHashTopic().name(), pasteHeader.value());
+        log.info("Paste: {}", paste);
 
-        idToTime.remove(id);
-        log.info("Save paste: {} {}", paste, hash);
         // Тут надо записать в БД новую запись, а именно - id hash, text varchar, datetime time
         pasteService.savePaste(paste, hash);
     }
