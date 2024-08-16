@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -46,11 +43,12 @@ public class PasteService {
 
         HttpEntity<?> entity = new HttpEntity<>(pasteJson, headers);
 
-        restTemplate.exchange(
+        ResponseEntity<String> responseEntity = restTemplate.exchange(
                 builder.toUriString(),
                 HttpMethod.PUT,
                 entity,
                 String.class
         );
+        System.out.println(responseEntity);
     }
 }

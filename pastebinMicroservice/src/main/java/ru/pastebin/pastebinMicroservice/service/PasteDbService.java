@@ -9,11 +9,11 @@ import ru.pastebin.pastebinMicroservice.repository.PasteRepository;
 
 @Service
 @Slf4j
-public class PasteService {
+public class PasteDbService {
     private final PasteRepository pasteRepository;
 
     @Autowired
-    public PasteService(PasteRepository pasteRepository) {
+    public PasteDbService(PasteRepository pasteRepository) {
         this.pasteRepository = pasteRepository;
     }
 
