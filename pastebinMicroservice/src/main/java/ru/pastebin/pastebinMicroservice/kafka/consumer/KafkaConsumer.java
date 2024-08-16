@@ -21,40 +21,24 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 @Slf4j
 public class KafkaConsumer {
-
-    private final String createPasteTopicName = "create-paste-topic";// TODO: поискать способы заполнения через конф файл.
     private final String groupId = "group-1";
 
     private final String getGeneratedHashTopicName = "generated-hash-topic";
 
-    private final KafkaProducer kafkaProducer;
     private final KafkaTopic kafkaTopic;
 
-    private PasteService pasteService;
-    private PasteDeserializer pasteDeserializer;
+    private final PasteService pasteService;
+    private final PasteDeserializer pasteDeserializer;
 
     @Autowired
     public KafkaConsumer(
-            KafkaProducer kafkaProducer,
             KafkaTopic kafkaTopic,
             PasteDeserializer pasteDeserializer,
             PasteService pasteService
     ) {
-        this.kafkaProducer = kafkaProducer;
         this.kafkaTopic = kafkaTopic;
         this.pasteDeserializer = pasteDeserializer;
         this.pasteService = pasteService;
-    }
-
-    /**
-     * Прослушивает события создания Paste. Когда пришёл запрос, надо запросить Hash с другого микросервиса.
-     * */
-    @KafkaListener(topics = createPasteTopicName, groupId = groupId, containerFactory = "pasteKafkaListenerContainerFactory")
-    private void createPasteListener(ConsumerRecord<String, Paste> record) {
-        Paste paste = record.value();
-        log.info("Received CreatePaste message {}, Sending to HashMicroservice", paste);
-
-        kafkaProducer.sendGetHashMessage(kafkaTopic.getHashTopic().name(), paste);
     }
 
     @KafkaListener(topics = getGeneratedHashTopicName, groupId = groupId, containerFactory = "getGeneratedHashContainerFactory")
