@@ -31,9 +31,8 @@ public class KafkaConsumer {
      * */
     @KafkaListener(topics = topicName, groupId = groupId, containerFactory = "hashKafkaListenerContainerFactory")
     private void createPasteListener(ConsumerRecord<Void, Void> record) {
-        log.info("Received GetHash message.");
         String hash = hashGenerator.generateAndSaveHash();
-        log.info("Hash: {}", hash);
+        log.info("Generated hash: {}", hash);
 
         kafkaProducer.sendGenerateHashMessage(kafkaTopic.generateHashTopic().name(), hash, record.headers());
     }

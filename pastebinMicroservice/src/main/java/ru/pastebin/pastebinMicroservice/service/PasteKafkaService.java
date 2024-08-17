@@ -3,7 +3,7 @@ package ru.pastebin.pastebinMicroservice.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.pastebin.pastebinMicroservice.component.FuturePasteComponent;
-import ru.pastebin.pastebinMicroservice.dto.Paste;
+import ru.pastebin.pastebinMicroservice.dto.PasteRequest;
 import ru.pastebin.pastebinMicroservice.kafka.producer.KafkaProducer;
 import ru.pastebin.pastebinMicroservice.model.PasteEntity;
 
@@ -25,11 +25,11 @@ public class PasteKafkaService {
         this.futurePasteComponent = futurePasteComponent;
     }
 
-    public Future<PasteEntity> savePasteWithFuture(Paste paste) {
+    public Future<PasteEntity> savePasteWithFuture(PasteRequest pasteRequest) {
         UUID requestId = UUID.randomUUID();
         CompletableFuture<PasteEntity> futurePaste = new CompletableFuture<>();
 
-        kafkaProducer.sendGetHashMessage(paste, requestId);
+        kafkaProducer.sendGetHashMessage(pasteRequest, requestId);
         //TODO: рефакторинг - надо будет правильно написать логику ожидания сохранения пасты в БД.
         // Для того, чтобы отслеживать сохранение paste в БД.
         futurePasteComponent.putPasteFuture(requestId, futurePaste);

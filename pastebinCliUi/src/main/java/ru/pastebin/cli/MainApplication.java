@@ -1,9 +1,12 @@
 package ru.pastebin.cli;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.client.HttpClientErrorException;
 import ru.pastebin.cli.dto.Paste;
+import ru.pastebin.cli.dto.PasteWithHash;
 import ru.pastebin.cli.service.PasteService;
 
 import java.io.BufferedReader;
@@ -11,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
 
+@Slf4j
 public class MainApplication {
     private static PasteService pasteService;
 
@@ -30,15 +34,19 @@ public class MainApplication {
                     continue;
                 }
                 char type = query.charAt(0);
+                String queryParam = query.substring(1).trim();
+                if (queryParam.isEmpty()) {
+                    System.out.println("Query param is empty, try again.");
+                    continue;
+                }
                 switch (type) {
                      case 'c':
-                        String paste = query.substring(1).trim();
                         Date date = new Date();
-                        createPaste(new Paste(paste, date));
+                        System.out.println(createPaste(new Paste(queryParam, date)));
                         break;
                     case 'g':
-                        String id = query.substring(1).trim();
-                        getPaste(id);
+                        PasteWithHash responsePaste = getPaste(queryParam);
+                        System.out.println(responsePaste);
                         break;
                     case 'e':
                         noExit = false;
@@ -53,11 +61,16 @@ public class MainApplication {
         }
     }
 
-    private static void createPaste(Paste paste) {
-        pasteService.sendPaste(paste);
+    private static PasteWithHash createPaste(Paste paste) {
+        return pasteService.sendPaste(paste);
     }
 
-    private static Paste getPaste(String id) {
-        return null;
+    private static PasteWithHash getPaste(String id) {
+        try {
+             return pasteService.getPaste(id);
+        } catch (HttpClientErrorException e) {
+            log.warn("Paste not found: {}", id);
+            return null;
+        }
     }
 }

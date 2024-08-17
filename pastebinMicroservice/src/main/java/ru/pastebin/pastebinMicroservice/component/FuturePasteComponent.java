@@ -6,7 +6,6 @@ import ru.pastebin.pastebinMicroservice.model.PasteEntity;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 
 /**
  * Хранит в себе информацию об id запросов и их коллбеках.

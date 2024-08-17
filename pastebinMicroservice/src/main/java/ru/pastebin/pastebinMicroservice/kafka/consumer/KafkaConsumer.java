@@ -10,7 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import ru.pastebin.pastebinMicroservice.component.FuturePasteComponent;
 import ru.pastebin.pastebinMicroservice.deserializer.PasteDeserializer;
-import ru.pastebin.pastebinMicroservice.dto.Paste;
+import ru.pastebin.pastebinMicroservice.dto.PasteRequest;
 import ru.pastebin.pastebinMicroservice.kafka.KafkaTopic;
 import ru.pastebin.pastebinMicroservice.model.PasteEntity;
 import ru.pastebin.pastebinMicroservice.service.PasteDbService;
@@ -54,7 +54,7 @@ public class KafkaConsumer {
         Headers headers = record.headers();
         Optional<byte[]> pasteBytesOpt = getHeader(headers, "paste");
         Optional<byte[]> requestIdBytesOpt = getHeader(headers, "request-id");
-        AtomicReference<Paste> paste = new AtomicReference<>();
+        AtomicReference<PasteRequest> paste = new AtomicReference<>();
         AtomicReference<String> requestId = new AtomicReference<>();
 
         AtomicBoolean returnBecauseOfHeaderNotPresent = new AtomicBoolean(false);
@@ -80,7 +80,7 @@ public class KafkaConsumer {
             return;
         }
 
-        log.info("Paste: {}", paste.get());
+        log.info("Saved Paste: {}", paste.get());
         // Тут надо записать в БД новую запись, а именно - id hash, text varchar, datetime time
         pasteDbService.savePaste(paste.get(), hash);
 

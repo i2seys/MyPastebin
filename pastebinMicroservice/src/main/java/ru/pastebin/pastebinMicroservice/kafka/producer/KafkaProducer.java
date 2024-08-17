@@ -7,7 +7,7 @@ import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import ru.pastebin.pastebinMicroservice.dto.Paste;
+import ru.pastebin.pastebinMicroservice.dto.PasteRequest;
 import ru.pastebin.pastebinMicroservice.kafka.KafkaTopic;
 import ru.pastebin.pastebinMicroservice.serializer.PasteSerializer;
 
@@ -32,12 +32,9 @@ public class KafkaProducer {
         this.kafkaTopic = kafkaTopic;
     }
 
-    public void sendGetHashMessage(Paste paste, UUID requestId) {
-        log.info("Sending GetHash message");
-        log.info("--------------------------------");
-
+    public void sendGetHashMessage(PasteRequest pasteRequest, UUID requestId) {
         List<Header> headers = List.of(
-                new RecordHeader("paste", pasteSerializer.serialize(kafkaTopic.getHashTopic().name(), paste)),
+                new RecordHeader("paste", pasteSerializer.serialize(kafkaTopic.getHashTopic().name(), pasteRequest)),
                 new RecordHeader("request-id", requestId.toString().getBytes())
         );
 

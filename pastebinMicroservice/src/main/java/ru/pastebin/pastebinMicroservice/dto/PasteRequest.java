@@ -11,7 +11,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class Paste {
+public class PasteRequest {
     private String paste;
     @JsonProperty("create_time")
     private Date createTime;

@@ -1,7 +1,6 @@
 package ru.pastebin.pastebinMicroservice.kafka.consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.VoidDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import ru.pastebin.pastebinMicroservice.deserializer.PasteDeserializer;
-import ru.pastebin.pastebinMicroservice.dto.Paste;
+import ru.pastebin.pastebinMicroservice.dto.PasteRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +34,7 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, Paste> pasteConsumerFactory() {
+    public ConsumerFactory<String, PasteRequest> pasteConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
@@ -65,8 +64,8 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, Paste>> pasteKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Paste> factory =
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, PasteRequest>> pasteKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, PasteRequest> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(pasteConsumerFactory());
         return factory;

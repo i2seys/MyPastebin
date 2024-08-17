@@ -5,20 +5,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
 import org.springframework.stereotype.Component;
-import ru.pastebin.pastebinMicroservice.dto.Paste;
+import ru.pastebin.pastebinMicroservice.dto.PasteRequest;
 
 @Slf4j
 @Component
-public class PasteSerializer implements Serializer<Paste> {
+public class PasteSerializer implements Serializer<PasteRequest> {
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Override
-    public byte[] serialize(String topic, Paste paste) {
+    public byte[] serialize(String topic, PasteRequest pasteRequest) {
         try {
-            if (paste == null){
+            if (pasteRequest == null){
                 log.warn("Null received at serializing");
                 return null;
             }
-            return objectMapper.writeValueAsBytes(paste);
+            return objectMapper.writeValueAsBytes(pasteRequest);
         } catch (Exception e) {
             throw new SerializationException("Error when serializing Paste to byte[]");
         }

@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @Slf4j
 public class KafkaProducer {
@@ -16,9 +14,6 @@ public class KafkaProducer {
     private KafkaTemplate<Void, String> sendHashKafkaTemplate;
 
     public void sendGenerateHashMessage(String topicName, String hash, Headers headers) {
-        log.info("Sending GetHash message");
-        log.info("--------------------------------");
-
         ProducerRecord<Void, String> record = new ProducerRecord<>(
                 topicName,
                 null,
