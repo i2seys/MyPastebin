@@ -1,74 +1,42 @@
 package ru.pastebin.cli.benchmark;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import ru.pastebin.cli.benchmark.bench.BenchConfiguration;
+import ru.pastebin.cli.benchmark.bench.BenchFactory;
 import ru.pastebin.cli.service.PasteService;
 
 
+@Slf4j
+@Component
 public class BenchmarkApplication {
-    private static PasteService pasteService;
-    public static void bench(String[] args) {
-        ApplicationContext ctx = new AnnotationConfigApplicationContext("ru.pastebin.cli");
-        pasteService = ctx.getBean(PasteService.class);
+    private final PasteService pasteService;
+    private final BenchTypeConverter benchTypeConverter;
+    private final BenchFactory benchFactory;
+    @Autowired
+    public BenchmarkApplication(
+            PasteService pasteService,
+            BenchTypeConverter benchTypeConverter,
+            BenchFactory benchFactory
+    ) {
+        this.pasteService = pasteService;
+        this.benchTypeConverter = benchTypeConverter;
+        this.benchFactory = benchFactory;
+    }
 
+    public void bench(String[] args) {
         CommandLine cmd = getOptions(args);
-        BenchRecord benchRecord = getBenchRecord(cmd);
-        runBench(benchRecord);
+        BenchConfiguration benchConfiguration = getBenchRecord(cmd);
+        runBench(benchConfiguration);
     }
 
-    private static void runBench(BenchRecord benchRecord) {
-        switch (benchRecord.benchType) {
-            case CREATE -> {
-                return;
-            }
-            case GET -> {
-                return;
-            }
-            case CREATE_AND_GET -> {
-                return;
-            }
-        }
+    private void runBench(BenchConfiguration benchRecord) {
+        benchFactory.getBench(benchRecord).runBench();
     }
 
-    private static BenchRecord getBenchRecord(CommandLine cmd) {
-        try {
-            BenchType benchType = cmd.getParsedOptionValue("bench");
-            int queryCount = cmd.getParsedOptionValue("query-count");
-            int threads = cmd.getParsedOptionValue("threads");
-            int maxTextSize = cmd.getParsedOptionValue("max-text-size");
-            int minTextSize = cmd.getParsedOptionValue("min-text-size");
-            double percentageCreate = cmd.getParsedOptionValue("percentage-create");
-            double minDelay;
-            if (cmd.hasOption("min-delay")) {
-                minDelay = cmd.getParsedOptionValue("min-delay");
-            } else {
-                minDelay = 0;
-            }
-            double maxDelay;
-            if (cmd.hasOption("max-delay")) {
-                maxDelay = cmd.getParsedOptionValue("max-delay");
-            } else {
-                maxDelay = 0;
-            }
-            return new BenchRecord(
-                    benchType,
-                    queryCount,
-                    threads,
-                    maxTextSize,
-                    minTextSize,
-                    percentageCreate,
-                    minDelay,
-                    maxDelay
-            );
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            System.exit(1);
-            return null;
-        }
-    }
-
-    private static CommandLine getOptions(String[] args) {
+    private CommandLine getOptions(String[] args) {
         Options options = new Options();
 
         Option createPastes = Option.builder()
@@ -77,28 +45,21 @@ public class BenchmarkApplication {
                 .hasArg(true)
                 .required(true)
                 .desc("вид теста (c - только создание, g - только получение, x - и то, и то)")
-                .converter(BenchType.BENCH_CONVERTER)
+                .converter(BenchHttpQueryType.BENCH_CONVERTER)
                 .build();
         options.addOption(createPastes);
 
-
-        //Один из двух ниже
-        OptionGroup queryCountOrBenchTime = new OptionGroup();
-        Option queryCount = Option.builder()
-                .longOpt("query-count")
-                .hasArg(true)
-                .desc("количество запросов")
-                .converter(Converter.NUMBER)
+        Option queryCountOrBenchTime = Option.builder()
+                .option("bt")
+                .longOpt("bench-type")
+                .hasArgs()
+                .numberOfArgs(1)//TODO: возможно стоит переделать под какие-то другие аргументы
+                .required(true)
+                .converter(benchTypeConverter)
+                .desc("первый аргумент - количество запросов (q) или время тестирования (t), " +
+                        "второй - величина (количество или время). Пример: q=10000")
                 .build();
-        Option benchTime = Option.builder()
-                .longOpt("bench-time")
-                .hasArg(true)
-                .desc("время тестирования (в секундах)")
-                .converter(Converter.NUMBER)
-                .build();
-        queryCountOrBenchTime.addOption(queryCount).addOption(benchTime);
-        queryCountOrBenchTime.setRequired(true);
-        options.addOptionGroup(queryCountOrBenchTime);
+        options.addOption(queryCountOrBenchTime);
 
         Option threadsCount = Option.builder()
                 .option("t")
@@ -164,17 +125,50 @@ public class BenchmarkApplication {
             formatter.printHelp("benchmark", options);
             System.exit(1);
         }
+
         return cmd;
     }
 
-    private record BenchRecord(
-            BenchType benchType,
-            int queryCount,
-            int threads,
-            int maxTextSize,
-            int minTextSize,
-            double percentageCreate,
-            double minDelay,
-            double maxDelay
-    ){}
+    private BenchConfiguration getBenchRecord(CommandLine cmd) {
+        try {
+            BenchHttpQueryType benchHttpQueryType = cmd.getParsedOptionValue("bench");
+            BenchConfiguration.BenchTypePair benchTypePair = cmd.getParsedOptionValue("bench-type");
+
+            long threads = cmd.getParsedOptionValue("threads");
+            long maxTextSize = cmd.getParsedOptionValue("max-text-size");
+            long minTextSize = cmd.getParsedOptionValue("min-text-size");
+            double percentageCreate;
+            if (cmd.hasOption("percentage-create")) {
+                percentageCreate = cmd.getParsedOptionValue("percentage-create");
+            } else {
+                percentageCreate = 0;
+            }
+            double minDelay;
+            if (cmd.hasOption("min-delay")) {
+                minDelay = cmd.getParsedOptionValue("min-delay");
+            } else {
+                minDelay = 0;
+            }
+            double maxDelay;
+            if (cmd.hasOption("max-delay")) {
+                maxDelay = cmd.getParsedOptionValue("max-delay");
+            } else {
+                maxDelay = 0;
+            }
+            return new BenchConfiguration(
+                    benchHttpQueryType,
+                    benchTypePair,
+                    threads,
+                    maxTextSize,
+                    minTextSize,
+                    percentageCreate,
+                    minDelay,
+                    maxDelay
+            );
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+            return null;
+        }
+    }
 }

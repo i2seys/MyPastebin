@@ -3,6 +3,7 @@ package ru.pastebin.cli.cliUi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import ru.pastebin.cli.dto.Paste;
 import ru.pastebin.cli.dto.PasteWithHash;
@@ -14,10 +15,11 @@ import java.io.InputStreamReader;
 import java.util.Date;
 
 @Slf4j
+@Component
 public class CliUiApplication {
-    private static PasteService pasteService;
+    private PasteService pasteService;
 
-    public static void run() {
+    public void run() {
         ApplicationContext ctx = new AnnotationConfigApplicationContext("ru.pastebin.cli");
         pasteService = ctx.getBean(PasteService.class);
 
@@ -40,7 +42,7 @@ public class CliUiApplication {
                 }
                 switch (type) {
                     case 'c':
-                        Date date = new Date();
+                        long date = System.currentTimeMillis();
                         System.out.println(createPaste(new Paste(queryParam, date)));
                         break;
                     case 'g':
@@ -61,11 +63,11 @@ public class CliUiApplication {
     }
 
 
-    private static PasteWithHash createPaste(Paste paste) {
+    private PasteWithHash createPaste(Paste paste) {
         return pasteService.sendPaste(paste);
     }
 
-    private static PasteWithHash getPaste(String id) {
+    private PasteWithHash getPaste(String id) {
         try {
             return pasteService.getPaste(id);
         } catch (HttpClientErrorException e) {
