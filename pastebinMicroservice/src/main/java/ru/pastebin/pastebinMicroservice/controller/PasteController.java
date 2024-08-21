@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-@RestController()
+@RestController
 @RequestMapping("/api/v1")
 public class PasteController {
     private final PasteKafkaService pasteKafkaService;

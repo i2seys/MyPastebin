@@ -10,6 +10,7 @@ public abstract class Bench {
     private final BenchConfiguration benchConfiguration;
     private long benchStartTime;
     private long benchFinishTime;
+    private Random rand;
 
     private final List<List<Long>> threadsQueriesExecutionTime;
 
@@ -25,8 +26,9 @@ public abstract class Bench {
 
     public Bench(BenchConfiguration benchConfiguration) {
         this.benchConfiguration = benchConfiguration;
-        queriesExecutionTime = new LinkedList<>();
-        threadsQueriesExecutionTime = Collections.synchronizedList(new LinkedList<>());
+        this.queriesExecutionTime = new LinkedList<>();
+        this.threadsQueriesExecutionTime = Collections.synchronizedList(new LinkedList<>());
+        this.rand = new Random();
     }
 
     /**
@@ -39,7 +41,13 @@ public abstract class Bench {
         List<Thread> threadsToRun = new LinkedList<>();
         int benchTimeOrQueriesValue = (int)(benchConfiguration.benchTypePair().value() / benchConfiguration.threads());
         for (int i = 0; i < benchConfiguration.threads(); i++) {
-            threadsToRun.add(new Thread(() -> runBenchSingleThread(benchTimeOrQueriesValue)));
+            threadsToRun.add(new Thread(() -> {
+                try {
+                    runBenchSingleThread(benchTimeOrQueriesValue);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
         }
         // Время начала теста
         benchStartTime = now();
@@ -85,24 +93,32 @@ public abstract class Bench {
     protected void afterBench() {
     }
 
-    private void runBenchSingleThread(int benchTimeOrQueriesValue) {
+    private void runBenchSingleThread(int benchTimeOrQueriesValue) throws InterruptedException {
         List<Long> localQueriesExecutionTime = new LinkedList<>();
+        boolean hasDelay = benchConfiguration.minDelay() != null && benchConfiguration.maxDelay() != null;
         if (benchConfiguration.benchTypePair().benchType() == BenchType.BENCH_TIME) {
             // Запуск bench с таймером
             while (this.benchStartTime > now() - benchConfiguration.benchTypePair().value()) {
-                long startTimeLocal = now();
-                singleBenchAction();
-                localQueriesExecutionTime.add(now() - startTimeLocal);
+                benchWithTimerAndDelay(localQueriesExecutionTime, hasDelay);
             }
-        } else { //TODO: убрать копипасту
+        } else {
             // Запуск bench с количеством.
             for (int i = 0; i < benchTimeOrQueriesValue; i++) {
-                long startTimeLocal = now();
-                singleBenchAction();
-                localQueriesExecutionTime.add(now() - startTimeLocal);
+                benchWithTimerAndDelay(localQueriesExecutionTime, hasDelay);
             }
         }
         threadsQueriesExecutionTime.add(localQueriesExecutionTime);
+    }
+
+    private void benchWithTimerAndDelay(List<Long> localQueriesExecutionTime, boolean hasDelay) throws InterruptedException {
+        long startTimeLocal = now();
+        singleBenchAction();
+        localQueriesExecutionTime.add(now() - startTimeLocal);
+
+        if (hasDelay) {
+            int threadSleepTimeMs = rand.nextInt(benchConfiguration.minDelay(), benchConfiguration.maxDelay());
+            Thread.sleep(threadSleepTimeMs);
+        }
     }
 
     private long now() {

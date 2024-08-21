@@ -7,7 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import ru.pastebin.hashMicroservice.kafka.KafkaTopic;
 import ru.pastebin.hashMicroservice.kafka.producer.KafkaProducer;
-import ru.pastebin.hashMicroservice.service.HashGenerator;
+import ru.pastebin.hashMicroservice.service.HashGeneratorService;
 
 @Slf4j
 @Component
@@ -15,14 +15,14 @@ public class KafkaConsumer {
     private final String topicName = "get-hash-topic";// TODO: поискать способы заполнения через конф файл.
     private final String groupId = "group-1";
 
-    private final HashGenerator hashGenerator;
+    private final HashGeneratorService cuidHashGeneratorService;
     private final KafkaTopic kafkaTopic;
     private final KafkaProducer kafkaProducer;
 
     @Autowired
-    public KafkaConsumer(KafkaTopic kafkaTopic, HashGenerator hashGenerator, KafkaProducer kafkaProducer) {
+    public KafkaConsumer(KafkaTopic kafkaTopic, HashGeneratorService cuidHashGeneratorService, KafkaProducer kafkaProducer) {
         this.kafkaTopic = kafkaTopic;
-        this.hashGenerator = hashGenerator;
+        this.cuidHashGeneratorService = cuidHashGeneratorService;
         this.kafkaProducer = kafkaProducer;
     }
 
@@ -31,7 +31,7 @@ public class KafkaConsumer {
      * */
     @KafkaListener(topics = topicName, groupId = groupId, containerFactory = "hashKafkaListenerContainerFactory")
     private void createPasteListener(ConsumerRecord<Void, Void> record) {
-        String hash = hashGenerator.generateAndSaveHash();
+        String hash = cuidHashGeneratorService.generateAndSaveHash();
         log.info("Generated hash: {}", hash);
 
         kafkaProducer.sendGenerateHashMessage(kafkaTopic.generateHashTopic().name(), hash, record.headers());

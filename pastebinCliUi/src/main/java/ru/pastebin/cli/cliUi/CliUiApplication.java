@@ -12,7 +12,6 @@ import ru.pastebin.cli.service.PasteService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Date;
 
 @Slf4j
 @Component

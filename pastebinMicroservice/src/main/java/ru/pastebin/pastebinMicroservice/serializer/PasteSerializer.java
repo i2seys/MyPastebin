@@ -15,12 +15,11 @@ public class PasteSerializer implements Serializer<PasteRequest> {
     public byte[] serialize(String topic, PasteRequest pasteRequest) {
         try {
             if (pasteRequest == null){
-                log.warn("Null received at serializing");
-                return null;
+                throw new SerializationException("Error when serializing PasteRequest(null) to byte[]");
             }
             return objectMapper.writeValueAsBytes(pasteRequest);
         } catch (Exception e) {
-            throw new SerializationException("Error when serializing Paste to byte[]");
+            throw new SerializationException("Error when serializing PasteRequest to byte[]");
         }
     }
 }

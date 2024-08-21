@@ -2,6 +2,8 @@ package ru.pastebin.hashMicroservice.model;
 
 import jakarta.persistence.*;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "hash")
 public class HashEntity {
@@ -22,5 +24,18 @@ public class HashEntity {
     }
 
     public HashEntity() {
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HashEntity that = (HashEntity) o;
+        return Objects.equals(hash, that.hash);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(hash);
     }
 }

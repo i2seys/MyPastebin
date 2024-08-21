@@ -9,9 +9,12 @@ import ru.pastebin.cli.benchmark.bench.BenchConfiguration;
 public class BenchTypeConverter implements Converter<BenchConfiguration.BenchTypePair, ParseException> {
     @Override
     public BenchConfiguration.BenchTypePair apply(String s) throws ParseException {
+        if (s == null) {
+            throw new ParseException("Wrong input args - string cant be null.");
+        }
         String[] args = s.split("=");
         if (args.length != 2) {
-            throw new ParseException("Wrong input args - should be size of 2.");
+            throw new ParseException("Wrong input args - should be size of 2, split char equals to '='.");
         }
         BenchType benchType = switch (args[0]) {
             case "q" -> BenchType.QUERY_COUNT;
