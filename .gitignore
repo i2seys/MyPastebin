@@ -1,0 +1,14 @@
+# FRONT
+front/node_modules/*
+
+# BACK
+
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+**/src/main/**/target/
+**/src/test/**/target/
+**/.idea/*
+**/src/main/**/build/
+**/src/test/**/build/
+*/target/**
+.idea

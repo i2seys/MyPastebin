@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasteBin Client</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .section { border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
+        textarea, input { width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; box-sizing: border-box; }
+        button { cursor: pointer; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        .result { background: #f8f9fa; padding: 1rem; border-radius: 4px; white-space: pre-wrap; word-break: break-all; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>PasteBin Web Client</h1>
+
+    <div class="section">
+        <h3>Создать Paste</h3>
+        <textarea id="createText" rows="5" placeholder="Введите текст..."></textarea>
+        <button onclick="createPaste()">Отправить</button>
+        <div id="createResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h3>Получить Paste</h3>
+        <input type="text" id="getHash" placeholder="Введите hash">
+        <button onclick="getPaste()">Найти</button>
+        <div id="getResult" class="result"></div>
+    </div>
+
+    <script>
+        async function createPaste() {
+            const text = document.getElementById('createText').value;
+            const resultDiv = document.getElementById('createResult');
+            
+            if (!text.trim()) {
+                resultDiv.innerHTML = '<span class="error">Текст не может быть пустым</span>';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/create', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paste: text })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    resultDiv.innerHTML = `Hash: <b>${data.hash}</b><br>Time: ${new Date(data.create_time).toLocaleString()}`;
+                    document.getElementById('createText').value = '';
+                } else {
+                    resultDiv.innerHTML = `<span class="error">Ошибка: ${data.error || res.statusText}</span>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = `<span class="error">Сетевая ошибка: ${e.message}</span>`;
+            }
+        }
+
+        async function getPaste() {
+            const hash = document.getElementById('getHash').value.trim();
+            const resultDiv = document.getElementById('getResult');
+
+            if (!hash) {
+                resultDiv.innerHTML = '<span class="error">Введите hash</span>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/get/${hash}`);
+                const data = await res.json();
+
+                if (res.ok) {
+                    resultDiv.innerHTML = `<b>Content:</b><br>${data.paste}<br><br><i>Created: ${new Date(data.create_time).toLocaleString()}</i>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">Не найдено или ошибка сервера</span>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = `<span class="error">Сетевая ошибка: ${e.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
